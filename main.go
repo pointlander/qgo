@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"runtime"
 	"sort"
 )
 
@@ -28,24 +29,42 @@ var Verbose = flag.Bool("v", false, "verbose mode")
 func main() {
 	flag.Parse()
 
+	parallelism := runtime.NumCPU()
+
 	done := make(chan int, 8)
 	factor := func(n int) {
 		done <- Factor(n)
 	}
-	primes, count, sum := Primes(), 0, 0
+	primes, numbers, flight, sum := Primes(), make([]int, 0, 8), 0, 0
 	for _, a := range primes {
 		for _, b := range primes {
-			go factor(a * b)
-			count++
+			numbers = append(numbers, a*b)
 		}
 	}
-	for i := 0; i < count; i++ {
-		sum += <-done
-		if *Verbose {
-			fmt.Println("done")
-		}
+
+	i := 0
+	for i < parallelism && i < len(numbers) {
+		go factor(numbers[i])
+		flight++
+		i++
 	}
-	fmt.Println(float64(sum) / float64(count))
+	for i < len(numbers) {
+		generations := <-done
+		sum += generations
+		flight--
+		fmt.Println("done", generations)
+
+		go factor(numbers[i])
+		flight++
+		i++
+	}
+	for j := 0; j < flight; j++ {
+		generations := <-done
+		sum += generations
+		fmt.Println("done", generations)
+	}
+
+	fmt.Println(float64(sum) / float64(len(numbers)))
 }
 
 // Primes returns the list of primes
