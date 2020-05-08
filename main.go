@@ -12,8 +12,12 @@ import (
 )
 
 const (
+	// Bits is the number of bits for a number
+	Bits = 4
 	// Size of the genome
-	Size = 1 << 8
+	Size = 1 << (2 * Bits)
+	// Mask masks of the bits
+	Mask = (1 << 4) - 1
 	// Population the population size
 	Population = 10
 )
@@ -104,7 +108,7 @@ func Factor(n int) int {
 		generation++
 	}
 	if *Verbose {
-		x, y := genomes[0].Index&0xF, (genomes[0].Index>>4)&0xF
+		x, y := genomes[0].GetValues()
 		fmt.Println(x, y)
 	}
 	return generation

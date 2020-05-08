@@ -47,7 +47,7 @@ func NewGenome(rnd *rand.Rand) Genome {
 func (g *Genome) ComputeFitness(n int, rnd *rand.Rand) {
 	a, b := g.Genome[Size:], g.Genome[:Size]
 	result := Mul(a, b)
-	sum, index := 0.0, 0
+	sum := 0.0
 	for _, value := range result {
 		sum += cmplx.Abs(complex128(value))
 	}
@@ -55,11 +55,11 @@ func (g *Genome) ComputeFitness(n int, rnd *rand.Rand) {
 	for i, value := range result {
 		accumulation += cmplx.Abs(complex128(value))
 		if r < accumulation/sum {
-			index = i
+			g.Index = i
 			break
 		}
 	}
-	x, y := index&0xF, (index>>4)&0xF
+	x, y := g.GetValues()
 	fit := n - x*y
 	if y == 1 || x == 1 {
 		fit = n
@@ -67,7 +67,12 @@ func (g *Genome) ComputeFitness(n int, rnd *rand.Rand) {
 		fit = -fit
 	}
 	g.Fitness = fit
-	g.Index = index
+
+}
+
+// GetValues returns the two values represented by this genome
+func (g Genome) GetValues() (int, int) {
+	return g.Index & Mask, (g.Index >> Bits) & Mask
 }
 
 // Copy makes a copy of the genome
