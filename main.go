@@ -28,14 +28,39 @@ var Verbose = flag.Bool("v", false, "verbose mode")
 func main() {
 	flag.Parse()
 
-	primes, count, sum := []int{2, 3, 5, 7, 11, 13}, 0, 0
+	done := make(chan int, 8)
+	factor := func(n int) {
+		done <- Factor(n)
+	}
+	primes, count, sum := Primes(), 0, 0
 	for _, a := range primes {
 		for _, b := range primes {
-			sum += Factor(a * b)
+			go factor(a * b)
 			count++
 		}
 	}
+	for i := 0; i < count; i++ {
+		sum += <-done
+		if *Verbose {
+			fmt.Println("done")
+		}
+	}
 	fmt.Println(float64(sum) / float64(count))
+}
+
+// Primes returns the list of primes
+func Primes() []int {
+	primes := []int{2}
+Search:
+	for i := 3; i < (1 << Bits); i++ {
+		for _, prime := range primes {
+			if (i % prime) == 0 {
+				continue Search
+			}
+		}
+		primes = append(primes, i)
+	}
+	return primes
 }
 
 // Factor factors a number
