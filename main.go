@@ -31,9 +31,18 @@ func main() {
 
 	parallelism := runtime.NumCPU()
 
-	done := make(chan int, 8)
-	factor := func(n int) {
-		done <- Factor(n)
+	type Result struct {
+		Instance    int
+		Number      int
+		Generations int
+	}
+	done := make(chan Result, 8)
+	factor := func(i, n int) {
+		done <- Result{
+			Instance:    i,
+			Number:      n,
+			Generations: Factor(n),
+		}
 	}
 	primes, numbers, flight, sum := Primes(), make([]int, 0, 8), 0, 0
 	for _, a := range primes {
@@ -44,27 +53,27 @@ func main() {
 
 	i := 0
 	for i < parallelism && i < len(numbers) {
-		go factor(numbers[i])
+		go factor(i, numbers[i])
 		flight++
 		i++
 	}
 	for i < len(numbers) {
-		generations := <-done
-		sum += generations
+		result := <-done
+		sum += result.Generations
 		flight--
-		fmt.Println("done", generations)
+		fmt.Printf("done %8d %8d %8d\n", result.Instance, result.Number, result.Generations)
 
-		go factor(numbers[i])
+		go factor(i, numbers[i])
 		flight++
 		i++
 	}
 	for j := 0; j < flight; j++ {
-		generations := <-done
-		sum += generations
-		fmt.Println("done", generations)
+		result := <-done
+		sum += result.Generations
+		fmt.Printf("done %8d %8d %8d\n", result.Instance, result.Number, result.Generations)
 	}
 
-	fmt.Println(float64(sum) / float64(len(numbers)))
+	fmt.Println("average generations=", float64(sum)/float64(len(numbers)))
 }
 
 // Primes returns the list of primes
