@@ -18,7 +18,7 @@ const (
 	// Size of the genome
 	Size = 1 << (2 * Bits)
 	// Mask masks of the bits
-	Mask = (1 << 4) - 1
+	Mask = (1 << Bits) - 1
 	// Population the population size
 	Population = 10
 )
@@ -120,6 +120,7 @@ func Factor(n int) int {
 				a.Genome[x] += complex(float32(rnd.NormFloat64()), float32(rnd.NormFloat64())) / 2
 				genomes = append(genomes, a)
 			}
+
 			// breed quantum algorithm
 			if .1 > rnd.Float64() {
 				a := genomes[rnd.Intn(length/2)].Copy()
@@ -132,6 +133,33 @@ func Factor(n int) int {
 			if .1 > rnd.Float64() {
 				a := genomes[i].Copy()
 				x := rnd.Intn(Size)
+				a.Genome[Size+Size*a.Index+x] += complex(float32(rnd.NormFloat64()), float32(rnd.NormFloat64())) / 2
+				genomes = append(genomes, a)
+			}
+
+			// breed qubits and quantum algorithm
+			if .1 > rnd.Float64() {
+				a := genomes[rnd.Intn(length/2)].Copy()
+				b := genomes[rnd.Intn(length/2)].Copy()
+				x, y := rnd.Intn(Size), rnd.Intn(Size)
+				a.Genome[x], b.Genome[y] = b.Genome[y], a.Genome[x]
+				genomes = append(genomes, a, b)
+
+				a = genomes[rnd.Intn(length/2)].Copy()
+				b = genomes[rnd.Intn(length/2)].Copy()
+				x, y = Size+Size*a.Index+rnd.Intn(Size), Size+Size*b.Index+rnd.Intn(Size)
+				a.Genome[x], b.Genome[y] = b.Genome[y], a.Genome[x]
+				genomes = append(genomes, a, b)
+			}
+			// mutate qubits and quantum algorithm
+			if .1 > rnd.Float64() {
+				a := genomes[i].Copy()
+				x := rnd.Intn(Size)
+				a.Genome[x] += complex(float32(rnd.NormFloat64()), float32(rnd.NormFloat64())) / 2
+				genomes = append(genomes, a)
+
+				a = genomes[i].Copy()
+				x = rnd.Intn(Size)
 				a.Genome[Size+Size*a.Index+x] += complex(float32(rnd.NormFloat64()), float32(rnd.NormFloat64())) / 2
 				genomes = append(genomes, a)
 			}
