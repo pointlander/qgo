@@ -51,6 +51,7 @@ func main() {
 		}
 	}
 
+	results := make([]Result, 0, len(numbers))
 	i := 0
 	for i < parallelism && i < len(numbers) {
 		go factor(i, numbers[i])
@@ -59,6 +60,7 @@ func main() {
 	}
 	for i < len(numbers) {
 		result := <-done
+		results = append(results, result)
 		sum += result.Generations
 		flight--
 		fmt.Printf("done %8d %8d %8d\n", result.Instance, result.Number, result.Generations)
@@ -69,10 +71,17 @@ func main() {
 	}
 	for j := 0; j < flight; j++ {
 		result := <-done
+		results = append(results, result)
 		sum += result.Generations
 		fmt.Printf("done %8d %8d %8d\n", result.Instance, result.Number, result.Generations)
 	}
-
+	fmt.Println("")
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Instance < results[j].Instance
+	})
+	for _, result := range results {
+		fmt.Printf("%8d %8d %8d\n", result.Instance, result.Number, result.Generations)
+	}
 	fmt.Println("average generations=", float64(sum)/float64(len(numbers)))
 }
 
