@@ -83,6 +83,7 @@ func main() {
 		fmt.Printf("%8d %8d %8d\n", result.Instance, result.Number, result.Generations)
 	}
 	fmt.Println("average generations=", float64(sum)/float64(len(numbers)))
+	fmt.Println("expected number of guesses=", (float64(len(numbers))+1)/2)
 }
 
 // Primes returns the list of primes
