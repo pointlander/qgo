@@ -29,6 +29,26 @@ var Verbose = flag.Bool("v", false, "verbose mode")
 func main() {
 	flag.Parse()
 
+	Process(Factor)
+}
+
+// Primes returns the list of primes
+func Primes() []int {
+	primes := []int{2}
+Search:
+	for i := 3; i < (1 << Bits); i++ {
+		for _, prime := range primes {
+			if (i % prime) == 0 {
+				continue Search
+			}
+		}
+		primes = append(primes, i)
+	}
+	return primes
+}
+
+// Process processes numbers with a factor function
+func Process(f func(n int) int) {
 	parallelism := runtime.NumCPU()
 
 	type Result struct {
@@ -41,7 +61,7 @@ func main() {
 		done <- Result{
 			Instance:    i,
 			Number:      n,
-			Generations: Factor(n),
+			Generations: f(n),
 		}
 	}
 	primes, numbers, flight, sum := Primes(), make([]int, 0, 8), 0, 0
@@ -84,21 +104,6 @@ func main() {
 	}
 	fmt.Println("average generations=", float64(sum)/float64(len(numbers)))
 	fmt.Println("expected number of guesses=", (float64(len(numbers))+1)/2)
-}
-
-// Primes returns the list of primes
-func Primes() []int {
-	primes := []int{2}
-Search:
-	for i := 3; i < (1 << Bits); i++ {
-		for _, prime := range primes {
-			if (i % prime) == 0 {
-				continue Search
-			}
-		}
-		primes = append(primes, i)
-	}
-	return primes
 }
 
 // Factor factors a number
